@@ -6,27 +6,48 @@ from datetime import datetime, timedelta
 
 class CORSRequestHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
-        if self.path == '/get-mark-six-data':
+        url = 'https://info.cld.hkjc.com/graphql/base/'
+        headers = {
+            'accept': '*/*',
+            'accept-language': 'en-HK,en;q=0.9,zh-HK;q=0.8,zh-MO;q=0.7,zh-TW;q=0.6,zh-CN;q=0.5,zh;q=0.4,en-GB;q=0.3,en-US;q=0.2',
+            'cache-control': 'no-cache',
+            'content-type': 'application/json',
+            'dnt': '1',
+            'origin': 'https://bet.hkjc.com',
+            'pragma': 'no-cache',
+            'priority': 'u=1, i',
+            'referer': 'https://bet.hkjc.com/',
+            'sec-ch-ua': '"Not)A;Brand";v="8", "Chromium";v="138", "Google Chrome";v="138"',
+            'sec-ch-ua-mobile': '?0',
+            'sec-ch-ua-platform': '"Windows"',
+            'sec-fetch-dest': 'empty',
+            'sec-fetch-mode': 'cors',
+            'sec-fetch-site': 'same-site',
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36'
+        }
+        query = "fragment lotteryDrawsFragment on LotteryDraw {\n  id\n  year\n  no\n  openDate\n  closeDate\n  drawDate\n  status\n  snowballCode\n  snowballName_en\n  snowballName_ch\n  lotteryPool {\n    sell\n    status\n    totalInvestment\n    jackpot\n    unitBet\n    estimatedPrize\n    derivedFirstPrizeDiv\n    lotteryPrizes {\n      type\n      winningUnit\n      dividend\n    }\n  }\n  drawResult {\n    drawnNo\n    xDrawnNo\n  }\n}\n\nquery marksixResult($lastNDraw: Int, $startDate: String, $endDate: String, $drawType: LotteryDrawType) {\n  lotteryDraws(\n    lastNDraw: $lastNDraw\n    startDate: $startDate\n    endDate: $endDate\n    drawType: $drawType\n  ) {\n    ...lotteryDrawsFragment\n  }\n}"
+
+        if self.path == '/get-latest-result':
             try:
-                url = 'https://info.cld.hkjc.com/graphql/base/'
-                headers = {
-                    'accept': '*/*',
-                    'accept-language': 'en-HK,en;q=0.9,zh-HK;q=0.8,zh-MO;q=0.7,zh-TW;q=0.6,zh-CN;q=0.5,zh;q=0.4,en-GB;q=0.3,en-US;q=0.2',
-                    'cache-control': 'no-cache',
-                    'content-type': 'application/json',
-                    'dnt': '1',
-                    'origin': 'https://bet.hkjc.com',
-                    'pragma': 'no-cache',
-                    'priority': 'u=1, i',
-                    'referer': 'https://bet.hkjc.com/',
-                    'sec-ch-ua': '"Not)A;Brand";v="8", "Chromium";v="138", "Google Chrome";v="138"',
-                    'sec-ch-ua-mobile': '?0',
-                    'sec-ch-ua-platform': '"Windows"',
-                    'sec-fetch-dest': 'empty',
-                    'sec-fetch-mode': 'cors',
-                    'sec-fetch-site': 'same-site',
-                    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36'
+                data = {
+                    "operationName": "marksixResult",
+                    "variables": {"lastNDraw": 1, "drawType": "All"},
+                    "query": query
                 }
+                response = requests.post(url, headers=headers, json=data)
+                response.raise_for_status()
+                json_data = response.json()
+
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps(json_data).encode('utf-8'))
+            except (requests.exceptions.RequestException, json.JSONDecodeError, AttributeError) as e:
+                self.send_error(500, f'Error processing data: {e}')
+        
+        elif self.path == '/get-all-results':
+            try:
                 all_draws = []
                 end_date = datetime.now()
                 start_date = datetime(1993, 1, 1)
@@ -45,7 +66,7 @@ class CORSRequestHandler(http.server.SimpleHTTPRequestHandler):
                             "endDate": current_end.strftime('%Y%m%d'),
                             "drawType": "All"
                         },
-                        "query": "fragment lotteryDrawsFragment on LotteryDraw {\n  id\n  year\n  no\n  openDate\n  closeDate\n  drawDate\n  status\n  snowballCode\n  snowballName_en\n  snowballName_ch\n  lotteryPool {\n    sell\n    status\n    totalInvestment\n    jackpot\n    unitBet\n    estimatedPrize\n    derivedFirstPrizeDiv\n    lotteryPrizes {\n      type\n      winningUnit\n      dividend\n    }\n  }\n  drawResult {\n    drawnNo\n    xDrawnNo\n  }\n}\n\nquery marksixResult($lastNDraw: Int, $startDate: String, $endDate: String, $drawType: LotteryDrawType) {\n  lotteryDraws(\n    lastNDraw: $lastNDraw\n    startDate: $startDate\n    endDate: $endDate\n    drawType: $drawType\n  ) {\n    ...lotteryDrawsFragment\n  }\n}"
+                        "query": query
                     }
                     
                     response = requests.post(url, headers=headers, json=data)
@@ -71,7 +92,7 @@ class CORSRequestHandler(http.server.SimpleHTTPRequestHandler):
         else:
             super().do_GET()
 
-PORT = 8000
+PORT = 8001
 
 with socketserver.TCPServer(('', PORT), CORSRequestHandler) as httpd:
     print(f'Serving at port {PORT}')

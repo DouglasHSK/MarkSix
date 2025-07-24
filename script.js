@@ -9,12 +9,11 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             // Using a proxy to bypass CORS issues
       
-            const response = await fetch('/get-mark-six-data');
+            const response = await fetch('/get-latest-result');
             const data = await response.json();
-            allDraws = data.data.lotteryDraws;
             
             // Get the latest result from the GraphQL response
-            const latestResult = allDraws[0];
+            const latestResult = data.data.lotteryDraws[0];
 
             if (latestResult) {
                 const drawDate = latestResult.drawDate;
@@ -39,33 +38,42 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function exportToCsv() {
-        if (allDraws.length === 0) {
-            alert('No data available to export.');
-            return;
+    async function exportToCsv() {
+        try {
+            const response = await fetch('/get-all-results');
+            const data = await response.json();
+            allDraws = data.data.lotteryDraws;
+
+            if (allDraws.length === 0) {
+                alert('No data available to export.');
+                return;
+            }
+
+            const headers = ['ID', 'Draw Date', 'No. 1', 'No. 2', 'No. 3', 'No. 4', 'No. 5', 'No. 6', 'Extra Number'];
+            const rows = allDraws.map(draw => {
+                const id = draw.id;
+                const drawDate = draw.drawDate;
+                const winningNumbers = draw.drawResult.drawnNo;
+                const extraNumber = draw.drawResult.xDrawnNo;
+                return [id, drawDate, ...winningNumbers, extraNumber];
+            });
+
+            let csvContent = "data:text/csv;charset=utf-8," 
+                + headers.join(",") + "\n" 
+                + rows.map(e => e.join(",")).join("\n");
+
+            var encodedUri = encodeURI(csvContent);
+            var link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "mark_six_results.csv");
+            document.body.appendChild(link); // Required for FF
+
+            link.click();
+            document.body.removeChild(link);
+        } catch (error) {
+            console.error('Error exporting to CSV:', error);
+            alert('Failed to export data. Please try again later.');
         }
-
-        const headers = ['ID', 'Draw Date', 'No. 1', 'No. 2', 'No. 3', 'No. 4', 'No. 5', 'No. 6', 'Extra Number'];
-        const rows = allDraws.map(draw => {
-            const id = draw.id;
-            const drawDate = draw.drawDate;
-            const winningNumbers = draw.drawResult.drawnNo;
-            const extraNumber = draw.drawResult.xDrawnNo;
-            return [id, drawDate, ...winningNumbers, extraNumber];
-        });
-
-        let csvContent = "data:text/csv;charset=utf-8," 
-            + headers.join(",") + "\n" 
-            + rows.map(e => e.join(",")).join("\n");
-
-        var encodedUri = encodeURI(csvContent);
-        var link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "mark_six_results.csv");
-        document.body.appendChild(link); // Required for FF
-
-        link.click();
-        document.body.removeChild(link);
     }
 
     exportCsvButton.addEventListener('click', exportToCsv);
