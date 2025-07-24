@@ -29,7 +29,7 @@ class CORSRequestHandler(http.server.SimpleHTTPRequestHandler):
                 }
                 data = {
                     "operationName": "marksixResult",
-                    "variables": {"lastNDraw": 10},
+                    "variables": {"startDate":"20250426","endDate":"20250725","drawType":"All"},
                     "query": "fragment lotteryDrawsFragment on LotteryDraw {\n  id\n  year\n  no\n  openDate\n  closeDate\n  drawDate\n  status\n  snowballCode\n  snowballName_en\n  snowballName_ch\n  lotteryPool {\n    sell\n    status\n    totalInvestment\n    jackpot\n    unitBet\n    estimatedPrize\n    derivedFirstPrizeDiv\n    lotteryPrizes {\n      type\n      winningUnit\n      dividend\n    }\n  }\n  drawResult {\n    drawnNo\n    xDrawnNo\n  }\n}\n\nquery marksixResult($lastNDraw: Int, $startDate: String, $endDate: String, $drawType: LotteryDrawType) {\n  lotteryDraws(\n    lastNDraw: $lastNDraw\n    startDate: $startDate\n    endDate: $endDate\n    drawType: $drawType\n  ) {\n    ...lotteryDrawsFragment\n  }\n}"
                 }
                 response = requests.post(url, headers=headers, json=data)
