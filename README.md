@@ -68,19 +68,20 @@ This project is a web application that fetches historical Mark Six lottery data,
 
 ### 2025-07-26
 
+-   **Enhancement:** Updated the progress indicator to be a larger, more visually appealing dialog with a blurred background.
 -   **Enhancement:** Changed the prediction results display from a grid to a list for better readability.
 -   **Feature:** Added a "Copy to Clipboard" button for the predicted numbers.
 -   **Fix:** Resolved a `TypeError` in `predict.py` related to JSON serialization of NumPy integer types.
--   **Style:** Updated `style.css` to format the new list and button.
+-   **Style:** Updated `style.css` to format the new list, button, and progress dialog.
 
-### [Date of last change]
+### 2025-07-25
 
 -   **Feature:** Implemented a feature to predict the next 10 sets of lottery numbers.
 -   **Model:** Updated the prediction script (`predict.py`) to generate 10 sequential predictions.
 -   **Backend:** Modified the proxy server (`proxy.py`) to handle the new prediction format.
 -   **Frontend:** Updated the user interface (`index.html` and `script.js`) to display the 10 predictions in a table.
 
-### [Previous Date]
+### 2025-07-24
 
 -   **Feature:** Created the initial prediction model.
 -   **Model:** Built and trained an LSTM model (`train_model.py`) to predict a single set of numbers.

@@ -43,9 +43,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function exportToCsv() {
         const exportButton = document.getElementById('export-csv');
         exportButton.disabled = true;
-        const progressContainer = document.getElementById('progress-container');
+        const progressDialog = document.getElementById('progress-dialog');
         const progressBar = document.getElementById('progress-bar');
-        progressContainer.style.display = 'block';
+        progressDialog.style.display = 'flex';
         progressBar.style.width = '0%';
         progressBar.textContent = '0%';
 
@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
         worker.onmessage = function(event) {
             const progressBar = document.getElementById('progress-bar');
             const exportButton = document.getElementById('export-csv');
-            const progressContainer = document.getElementById('progress-container');
+            const progressDialog = document.getElementById('progress-dialog');
 
             switch (event.data.type) {
                 case 'progress':
@@ -74,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     link.click();
 
                     setTimeout(() => {
-                        progressContainer.style.display = 'none';
+                        progressDialog.style.display = 'none';
                         document.body.removeChild(link);
                         URL.revokeObjectURL(url);
                         exportButton.disabled = false;
@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     break;
                 case 'error':
                     alert(event.data.error);
-                    progressContainer.style.display = 'none';
+                    progressDialog.style.display = 'none';
                     exportButton.disabled = false;
                     break;
             }
@@ -91,7 +91,8 @@ document.addEventListener('DOMContentLoaded', () => {
         worker.onerror = function(error) {
             console.error('Error in worker:', error);
             alert('An error occurred during the export process.');
-            progressContainer.style.display = 'none';
+            const progressDialog = document.getElementById('progress-dialog');
+            progressDialog.style.display = 'none';
             exportButton.disabled = false;
         };
 
@@ -134,19 +135,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     fetchMarkSixData();
 
-        function saveToDb() {
+    function saveToDb() {
         const saveButton = document.getElementById('save-to-db');
         saveButton.disabled = true;
 
-        const progressContainer = document.getElementById('progress-container');
+        const progressDialog = document.getElementById('progress-dialog');
         const progressBar = document.getElementById('progress-bar');
-        progressContainer.style.display = 'block';
+        progressDialog.style.display = 'flex';
         progressBar.style.width = '0%';
         progressBar.textContent = '0%';
 
         const worker = new Worker('save-to-db-worker.js');
 
         worker.onmessage = async function(event) {
+            const progressDialog = document.getElementById('progress-dialog');
+            const saveButton = document.getElementById('save-to-db');
+            const progressBar = document.getElementById('progress-bar');
+
             switch (event.data.type) {
                 case 'progress':
                     progressBar.style.width = `${event.data.progress}%`;
@@ -172,13 +177,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         console.error('Error saving data:', error);
                         alert('An error occurred while saving the data.');
                     } finally {
-                        progressContainer.style.display = 'none';
+                        progressDialog.style.display = 'none';
                         saveButton.disabled = false;
                     }
                     break;
                 case 'error':
                     alert(event.data.error);
-                    progressContainer.style.display = 'none';
+                    progressDialog.style.display = 'none';
                     saveButton.disabled = false;
                     break;
             }
@@ -187,7 +192,8 @@ document.addEventListener('DOMContentLoaded', () => {
         worker.onerror = function(error) {
             console.error('Error in worker:', error);
             alert('An error occurred during the save process.');
-            progressContainer.style.display = 'none';
+            const progressDialog = document.getElementById('progress-dialog');
+            progressDialog.style.display = 'none';
             saveButton.disabled = false;
         };
 
