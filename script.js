@@ -108,13 +108,25 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch('/predict');
             const data = await response.json();
             const predictionContainer = document.getElementById('prediction-container');
-            let tableHtml = '<h3>Predicted Next 10 Draws:</h3><table><thead><tr><th>Draw</th><th>Numbers</th></tr></thead><tbody>';
+            let html = '<h3>Predicted Next 10 Draws:</h3>';
+            html += '<ul class="prediction-list">';
             data.predictions.forEach((prediction, index) => {
-                tableHtml += `<tr><td>${index + 1}</td><td>${prediction.join(', ')}</td></tr>`;
+                html += `<li><strong>Set ${index + 1}:</strong> ${prediction.join(', ')}</li>`;
             });
-            tableHtml += '</tbody></table>';
-            predictionContainer.innerHTML = tableHtml;
+            html += '</ul>';
+            html += '<button id="copy-predictions">Copy to Clipboard</button>';
+            predictionContainer.innerHTML = html;
             predictionContainer.style.display = 'block';
+
+            const copyButton = document.getElementById('copy-predictions');
+            copyButton.addEventListener('click', () => {
+                const predictionText = data.predictions.map((p, i) => `Set ${i + 1}: ${p.join(', ')}`).join('\n');
+                navigator.clipboard.writeText(predictionText).then(() => {
+                    alert('Predictions copied to clipboard!');
+                }, () => {
+                    alert('Failed to copy predictions.');
+                });
+            });
         } catch (error) {
             console.error('Error fetching prediction:', error);
         }
