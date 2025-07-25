@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    async function exportToCsv() {
+    function exportToCsv() {
         const exportButton = document.getElementById('export-csv');
         exportButton.disabled = true;
         const progressContainer = document.getElementById('progress-container');
@@ -48,70 +48,62 @@ document.addEventListener('DOMContentLoaded', () => {
         progressBar.style.width = '0%';
         progressBar.textContent = '0%';
 
-        let allDraws = [];
-        const totalYears = new Date().getFullYear() - 1993 + 1;
+        const worker = new Worker('export-worker.js');
 
-        for (let i = 0; i < totalYears; i++) {
-            try {
-                const response = await fetch(`/get-results-by-page?page=${i + 1}`);
-                const data = await response.json();
-                if (data.data && data.data.lotteryDraws) {
-                    allDraws = allDraws.concat(data.data.lotteryDraws);
-                }
+        worker.onmessage = function(event) {
+            const progressBar = document.getElementById('progress-bar');
+            const exportButton = document.getElementById('export-csv');
+            const progressContainer = document.getElementById('progress-container');
 
-                const progress = Math.round(((i + 1) / totalYears) * 100);
-                progressBar.style.width = `${progress}%`;
-                progressBar.textContent = `${progress}%`;
+            switch (event.data.type) {
+                case 'progress':
+                    progressBar.style.width = `${event.data.progress}%`;
+                    progressBar.textContent = `${event.data.progress}%`;
+                    break;
+                case 'done':
+                    const blob = event.data.blob;
+                    const url = URL.createObjectURL(blob);
 
-            } catch (error) {
-                console.error(`Error fetching data for year ${1993 + i}:`, error);
+                    const link = document.createElement("a");
+                    link.setAttribute("href", url);
+                    link.setAttribute("download", "mark_six_results.csv");
+                    link.style.visibility = 'hidden';
+                    document.body.appendChild(link);
+
+                    link.click();
+
+                    setTimeout(() => {
+                        progressContainer.style.display = 'none';
+                        document.body.removeChild(link);
+                        URL.revokeObjectURL(url);
+                        exportButton.disabled = false;
+                    }, 2000);
+                    break;
+                case 'error':
+                    alert(event.data.error);
+                    progressContainer.style.display = 'none';
+                    exportButton.disabled = false;
+                    break;
             }
-        }
+        };
 
-        if (allDraws.length === 0) {
-            alert('No data available to export.');
+        worker.onerror = function(error) {
+            console.error('Error in worker:', error);
+            alert('An error occurred during the export process.');
             progressContainer.style.display = 'none';
             exportButton.disabled = false;
-            return;
-        }
+        };
 
-        sortdata=allDraws.sort((a, b) => b.drawDate > a.drawDate? 1 : -1);
-
-        const headers = ['ID', 'Draw Date', 'No. 1', 'No. 2', 'No. 3', 'No. 4', 'No. 5', 'No. 6', 'Extra Number'];
-        const rows = sortdata.map(draw => {
-            const id = draw.id;
-            const drawDate = draw.drawDate;
-            const winningNumbers = draw.drawResult.drawnNo;
-            const extraNumber = draw.drawResult.xDrawnNo;
-            return [id, drawDate, ...winningNumbers, extraNumber];
-        });
-
-        const csvContent = headers.join(",") + "\n" + rows.map(e => e.join(",")).join("\n");
-        const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-
-        const link = document.createElement("a");
-        link.setAttribute("href", url);
-        link.setAttribute("download", "mark_six_results.csv");
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-
-        link.click();
-
-        setTimeout(() => {
-            progressContainer.style.display = 'none';
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-            exportButton.disabled = false;
-        }, 2000);
-
+        worker.postMessage({ action: 'start-export' });
     }
+
+
 
     exportCsvButton.addEventListener('click', exportToCsv);
     saveToDbButton.addEventListener('click', saveToDb);
     fetchMarkSixData();
 
-    async function saveToDb() {
+        function saveToDb() {
         const saveButton = document.getElementById('save-to-db');
         saveButton.disabled = true;
 
@@ -121,53 +113,53 @@ document.addEventListener('DOMContentLoaded', () => {
         progressBar.style.width = '0%';
         progressBar.textContent = '0%';
 
-        let allDraws = [];
-        const totalYears = new Date().getFullYear() - 1993 + 1;
+        const worker = new Worker('save-to-db-worker.js');
 
-        for (let i = 0; i < totalYears; i++) {
-            try {
-                const response = await fetch(`/get-results-by-page?page=${i + 1}`);
-                const data = await response.json();
-                if (data.data && data.data.lotteryDraws) {
-                    allDraws = allDraws.concat(data.data.lotteryDraws);
-                }
+        worker.onmessage = async function(event) {
+            switch (event.data.type) {
+                case 'progress':
+                    progressBar.style.width = `${event.data.progress}%`;
+                    progressBar.textContent = `${event.data.progress}%`;
+                    break;
+                case 'done':
+                    const allDraws = event.data.data;
+                    try {
+                        const response = await fetch('/save-to-db', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(allDraws),
+                        });
 
-                const progress = Math.round(((i + 1) / totalYears) * 100);
-                progressBar.style.width = `${progress}%`;
-                progressBar.textContent = `${progress}%`;
-
-            } catch (error) {
-                console.error(`Error fetching data for year ${1993 + i}:`, error);
+                        if (response.ok) {
+                            alert('Data saved successfully!');
+                        } else {
+                            alert('Failed to save data.');
+                        }
+                    } catch (error) {
+                        console.error('Error saving data:', error);
+                        alert('An error occurred while saving the data.');
+                    } finally {
+                        progressContainer.style.display = 'none';
+                        saveButton.disabled = false;
+                    }
+                    break;
+                case 'error':
+                    alert(event.data.error);
+                    progressContainer.style.display = 'none';
+                    saveButton.disabled = false;
+                    break;
             }
-        }
+        };
 
-        if (allDraws.length === 0) {
-            alert('No data available to save.');
+        worker.onerror = function(error) {
+            console.error('Error in worker:', error);
+            alert('An error occurred during the save process.');
             progressContainer.style.display = 'none';
             saveButton.disabled = false;
-            return;
-        }
+        };
 
-        try {
-            const response = await fetch('/save-to-db', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(allDraws),
-            });
-
-            if (response.ok) {
-                alert('Data saved successfully!');
-            } else {
-                alert('Failed to save data.');
-            }
-        } catch (error) {
-            console.error('Error saving data:', error);
-            alert('An error occurred while saving the data.');
-        } finally {
-            progressContainer.style.display = 'none';
-            saveButton.disabled = false;
-        }
+        worker.postMessage({ action: 'start-save' });
     }
 });

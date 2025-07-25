@@ -115,18 +115,19 @@ class CORSRequestHandler(http.server.SimpleHTTPRequestHandler):
                     )
                 ''')
 
-                for draw in data:
-                    c.execute('''
-                        INSERT OR REPLACE INTO results (id, draw_date, no1, no2, no3, no4, no5, no6, extra_no)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    ''', (
-                        draw['id'],
-                        draw['drawDate'],
-                        *draw['drawResult']['drawnNo'],
-                        draw['drawResult']['xDrawnNo']
-                    ))
-
-                conn.commit()
+                for i in range(0, len(data), 100):
+                    batch = data[i:i+100]
+                    for draw in batch:
+                        c.execute('''
+                            INSERT OR REPLACE INTO results (id, draw_date, no1, no2, no3, no4, no5, no6, extra_no)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        ''', (
+                            draw['id'],
+                            draw['drawDate'],
+                            *draw['drawResult']['drawnNo'],
+                            draw['drawResult']['xDrawnNo']
+                        ))
+                    conn.commit()
                 conn.close()
 
                 self.send_response(200)
