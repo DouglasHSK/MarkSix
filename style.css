@@ -95,6 +95,12 @@ h1 {
     padding: 20px;
 }
 
+#export-csv:disabled {
+    background-color: #ccc;
+    color: #999;
+    cursor: not-allowed;
+}
+
 #progress-container {
     width: 100%;
     background-color: #f3f3f3;

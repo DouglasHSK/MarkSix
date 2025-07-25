@@ -39,6 +39,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function exportToCsv() {
+        const exportButton = document.getElementById('export-csv');
+        exportButton.disabled = true;
         const progressContainer = document.getElementById('progress-container');
         const progressBar = document.getElementById('progress-bar');
         progressContainer.style.display = 'block';
@@ -68,6 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (allDraws.length === 0) {
             alert('No data available to export.');
             progressContainer.style.display = 'none';
+            exportButton.disabled = false;
             return;
         }
 
@@ -98,6 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
             progressContainer.style.display = 'none';
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
+            exportButton.disabled = false;
         }, 2000);
 
     }
