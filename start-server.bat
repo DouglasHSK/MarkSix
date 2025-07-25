@@ -1,0 +1,3 @@
+@echo off
+echo Starting the server...
+python api/proxy.py

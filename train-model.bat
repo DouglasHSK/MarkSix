@@ -1,0 +1,3 @@
+@echo off
+echo Training the model...
+python api/train_model.py

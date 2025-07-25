@@ -1,0 +1,3 @@
+@echo off
+echo Running prediction...
+python api/predict.py

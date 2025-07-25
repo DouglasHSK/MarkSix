@@ -64,6 +64,45 @@ This project is a web application that fetches historical Mark Six lottery data,
 
 ## Usage
 
+### Scripts
+
+This project includes scripts to simplify common tasks on both Windows and Linux.
+
+**Windows**
+
+-   **Start the server:**
+    ```bash
+    start-server.bat
+    ```
+-   **Train the model:**
+    ```bash
+    train-model.bat
+    ```
+-   **Run prediction:**
+    ```bash
+    predict.bat
+    ```
+
+**Linux**
+
+-   **Start the server:**
+    ```bash
+    chmod +x start-server.sh
+    ./start-server.sh
+    ```
+-   **Train the model:**
+    ```bash
+    chmod +x train-model.sh
+    ./train-model.sh
+    ```
+-   **Run prediction:**
+    ```bash
+    chmod +x predict.sh
+    ./predict.sh
+    ```
+
+### Manual Usage
+
 1.  **Start the Web Server:**
 
     Run the proxy server to start the application:
