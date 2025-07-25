@@ -12,8 +12,9 @@ This project is a web application that fetches historical Mark Six lottery data,
     -   The model is trained on the historical data to learn patterns.
     -   The trained model (`marksix_model.h5`) is saved locally.
 -   **Prediction:**
-    -   Predicts the next 10 sets of lottery numbers based on the last 10 draws.
-    -   Displays the predictions on the web interface.
+    -   Predicts 10 unique sets of 6 lottery numbers.
+    -   Displays the predictions in a list format.
+    -   Allows copying the predicted numbers to the clipboard.
 
 ## Setup and Installation
 
@@ -64,6 +65,13 @@ This project is a web application that fetches historical Mark Six lottery data,
     -   Click **Predict Next Draw** to see the model's predictions for the next 10 draws.
 
 ## Changelog
+
+### 2025-07-26
+
+-   **Enhancement:** Changed the prediction results display from a grid to a list for better readability.
+-   **Feature:** Added a "Copy to Clipboard" button for the predicted numbers.
+-   **Fix:** Resolved a `TypeError` in `predict.py` related to JSON serialization of NumPy integer types.
+-   **Style:** Updated `style.css` to format the new list and button.
 
 ### [Date of last change]
 
