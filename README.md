@@ -2,15 +2,34 @@
 
 This project is a web application that fetches historical Mark Six lottery data, stores it in a local SQLite database, and uses a machine learning model to predict future lottery numbers.
 
+## Project Structure
+
+```
+.
+├── api
+│   ├── predict.py         # Handles predictions
+│   ├── proxy.py           # The web server
+│   └── train_model.py     # The model training script
+├── data
+│   ├── marksix.db         # The SQLite database
+│   ├── marksix_model.keras  # The trained model
+│   └── scaler_params.npy  # The scaler parameters
+├── public
+│   ├── index.html         # The main HTML file
+│   ├── script.js          # The main JavaScript file
+│   └── style.css          # The main CSS file
+└── requirements.txt
+```
+
 ## Features
 
 -   **Data Fetching:** Fetches historical lottery data from an external API.
--   **Database Storage:** Saves the fetched data into a local SQLite database (`marksix.db`).
+-   **Database Storage:** Saves the fetched data into a local SQLite database (`data/marksix.db`).
 -   **Data Export:** Allows exporting the data to a CSV file.
 -   **Machine Learning Model:**
     -   Trains an LSTM (Long Short-Term Memory) neural network model using TensorFlow/Keras.
     -   The model is trained on the historical data to learn patterns.
-    -   The trained model (`marksix_model.h5`) is saved locally.
+    -   The trained model (`data/marksix_model.keras`) is saved locally.
 -   **Prediction:**
     -   Predicts 10 unique sets of 6 lottery numbers.
     -   Displays the predictions in a list format.
@@ -38,10 +57,10 @@ This project is a web application that fetches historical Mark Six lottery data,
     Before you can make predictions, you need to train the model. Run the training script:
 
     ```bash
-    python train_model.py
+    python api/train_model.py
     ```
 
-    This will create the `marksix_model.h5` and `scaler_params.npy` files.
+    This will create the `data/marksix_model.keras` and `data/scaler_params.npy` files.
 
 ## Usage
 
@@ -50,7 +69,7 @@ This project is a web application that fetches historical Mark Six lottery data,
     Run the proxy server to start the application:
 
     ```bash
-    python proxy.py
+    python api/proxy.py
     ```
 
     The server will be running at `http://localhost:8002`.
@@ -65,6 +84,12 @@ This project is a web application that fetches historical Mark Six lottery data,
     -   Click **Predict Next Draw** to see the model's predictions for the next 10 draws.
 
 ## Changelog
+
+### 2025-07-26 (Refactor)
+
+-   **Refactor:** Restructured the project into `api`, `data`, and `public` directories for better organization.
+-   **Refactor:** Updated all file paths to reflect the new directory structure.
+-   **Model:** Changed the model saving format from `.h5` to the recommended `.keras` format.
 
 ### 2025-07-26
 
