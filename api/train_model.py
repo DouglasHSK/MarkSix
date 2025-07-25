@@ -7,7 +7,7 @@ from tensorflow.keras.layers import LSTM, Dense, Reshape
 
 # Function to load data from the database
 def load_data():
-    conn = sqlite3.connect('marksix.db')
+    conn = sqlite3.connect('data/marksix.db')
     cursor = conn.cursor()
     cursor.execute("SELECT no1, no2, no3, no4, no5, no6 FROM results ORDER BY draw_date DESC")
     rows = cursor.fetchall()
@@ -44,10 +44,10 @@ def train_model():
     model.fit(X, y, epochs=200, verbose=1)
 
     # Save the model and the scaler
-    model.save('marksix_model.h5')
-    np.save('scaler_params.npy', {'min': scaler.min_, 'scale': scaler.scale_})
+    model.save('data/marksix_model.keras')
+    np.save('data/scaler_params.npy', {'min': scaler.min_, 'scale': scaler.scale_})
 
-    print("Model training complete and saved as marksix_model.h5")
+    print("Model training complete and saved as marksix_model.keras")
 
 if __name__ == '__main__':
     train_model()

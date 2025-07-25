@@ -6,7 +6,7 @@ import json
 
 # Function to load the last sequence of data
 def load_last_sequence():
-    conn = sqlite3.connect('marksix.db')
+    conn = sqlite3.connect('data/marksix.db')
     cursor = conn.cursor()
     cursor.execute("SELECT no1, no2, no3, no4, no5, no6 FROM results ORDER BY draw_date DESC LIMIT 10")
     rows = cursor.fetchall()
@@ -16,8 +16,8 @@ def load_last_sequence():
 # Main function to make a prediction
 def predict_next_draws(num_predictions=10):
     # Load the trained model and scaler
-    model = tf.keras.models.load_model('marksix_model.h5', compile=False)
-    scaler_params = np.load('scaler_params.npy', allow_pickle=True).item()
+    model = tf.keras.models.load_model('data/marksix_model.keras', compile=False)
+    scaler_params = np.load('data/scaler_params.npy', allow_pickle=True).item()
     scaler = MinMaxScaler()
     scaler.min_ = scaler_params['min']
     scaler.scale_ = scaler_params['scale']

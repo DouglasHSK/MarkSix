@@ -7,6 +7,8 @@ import time
 import sqlite3
 
 class CORSRequestHandler(http.server.SimpleHTTPRequestHandler):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, directory='public', **kwargs)
     def do_GET(self):
         url = 'https://info.cld.hkjc.com/graphql/base/'
         headers = {
@@ -44,7 +46,10 @@ class CORSRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_header('Content-type', 'application/json')
                 self.send_header('Access-Control-Allow-Origin', '*')
                 self.end_headers()
-                self.wfile.write(json.dumps(json_data).encode('utf-8'))
+                try:
+                    self.wfile.write(json.dumps(json_data).encode('utf-8'))
+                except ConnectionAbortedError:
+                    pass # Client disconnected
             except (requests.exceptions.RequestException, json.JSONDecodeError, AttributeError) as e:
                 self.send_error(500, f'Error processing data: {e}')
         
@@ -90,13 +95,16 @@ class CORSRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_header('Content-type', 'application/json')
                 self.send_header('Access-Control-Allow-Origin', '*')
                 self.end_headers()
-                self.wfile.write(json.dumps(final_json_data).encode('utf-8'))
+                try:
+                    self.wfile.write(json.dumps(final_json_data).encode('utf-8'))
+                except ConnectionAbortedError:
+                    pass # Client disconnected
             except (requests.exceptions.RequestException, json.JSONDecodeError, AttributeError, ValueError) as e:
                 self.send_error(500, f'Error processing data: {e}')
         elif self.path == '/predict':
             try:
                 import subprocess
-                result = subprocess.run(['python', 'predict.py'], capture_output=True, text=True, check=True)
+                result = subprocess.run(['python', 'api/predict.py'], capture_output=True, text=True, check=True)
                 # Extract the line with the prediction
                 output_lines = result.stdout.strip().split('\n')
                 prediction_line = output_lines[-1]
@@ -106,7 +114,10 @@ class CORSRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_header('Content-type', 'application/json')
                 self.send_header('Access-Control-Allow-Origin', '*')
                 self.end_headers()
-                self.wfile.write(json.dumps({'predictions': predictions}).encode('utf-8'))
+                try:
+                    self.wfile.write(json.dumps({'predictions': predictions}).encode('utf-8'))
+                except ConnectionAbortedError:
+                    pass # Client disconnected
             except (subprocess.CalledProcessError, json.JSONDecodeError, IndexError) as e:
                 self.send_error(500, f'Error running prediction script: {e}')
         else:
@@ -119,7 +130,7 @@ class CORSRequestHandler(http.server.SimpleHTTPRequestHandler):
                 post_data = self.rfile.read(content_length)
                 data = json.loads(post_data.decode('utf-8'))
 
-                conn = sqlite3.connect('marksix.db')
+                conn = sqlite3.connect('data/marksix.db')
                 c = conn.cursor()
 
                 c.execute('''
@@ -150,7 +161,10 @@ class CORSRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_header('Content-type', 'application/json')
                 self.send_header('Access-Control-Allow-Origin', '*')
                 self.end_headers()
-                self.wfile.write(json.dumps({'message': 'Data saved successfully'}).encode('utf-8'))
+                try:
+                    self.wfile.write(json.dumps({'message': 'Data saved successfully'}).encode('utf-8'))
+                except ConnectionAbortedError:
+                    pass # Client disconnected
 
             except (json.JSONDecodeError, sqlite3.Error) as e:
                 self.send_error(500, f'Error processing data: {e}')
