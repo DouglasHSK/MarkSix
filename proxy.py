@@ -93,6 +93,22 @@ class CORSRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(json.dumps(final_json_data).encode('utf-8'))
             except (requests.exceptions.RequestException, json.JSONDecodeError, AttributeError, ValueError) as e:
                 self.send_error(500, f'Error processing data: {e}')
+        elif self.path == '/predict':
+            try:
+                import subprocess
+                result = subprocess.run(['python', 'predict.py'], capture_output=True, text=True, check=True)
+                # Extract the line with the prediction
+                output_lines = result.stdout.strip().split('\n')
+                prediction_line = output_lines[-1]
+                predictions = json.loads(prediction_line)
+
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps({'predictions': predictions}).encode('utf-8'))
+            except (subprocess.CalledProcessError, json.JSONDecodeError, IndexError) as e:
+                self.send_error(500, f'Error running prediction script: {e}')
         else:
             super().do_GET()
 

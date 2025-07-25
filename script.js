@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const resultsContainer = document.getElementById('results-container');
     const exportCsvButton = document.getElementById('export-csv');
     const saveToDbButton = document.getElementById('save-to-db');
+    const predictButton = document.getElementById('predict');
 
     async function fetchMarkSixData() {
         resultsContainer.innerHTML = '<div class="loading">Loading...</div>';
@@ -101,6 +102,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     exportCsvButton.addEventListener('click', exportToCsv);
     saveToDbButton.addEventListener('click', saveToDb);
+
+    predictButton.addEventListener('click', async () => {
+        try {
+            const response = await fetch('/predict');
+            const data = await response.json();
+            const predictionContainer = document.getElementById('prediction-container');
+            let tableHtml = '<h3>Predicted Next 10 Draws:</h3><table><thead><tr><th>Draw</th><th>Numbers</th></tr></thead><tbody>';
+            data.predictions.forEach((prediction, index) => {
+                tableHtml += `<tr><td>${index + 1}</td><td>${prediction.join(', ')}</td></tr>`;
+            });
+            tableHtml += '</tbody></table>';
+            predictionContainer.innerHTML = tableHtml;
+            predictionContainer.style.display = 'block';
+        } catch (error) {
+            console.error('Error fetching prediction:', error);
+        }
+    });
+
     fetchMarkSixData();
 
         function saveToDb() {
