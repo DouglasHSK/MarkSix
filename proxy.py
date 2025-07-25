@@ -3,6 +3,7 @@ import socketserver
 import requests
 import json
 from datetime import datetime, timedelta
+import time
 
 class CORSRequestHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
@@ -46,54 +47,59 @@ class CORSRequestHandler(http.server.SimpleHTTPRequestHandler):
             except (requests.exceptions.RequestException, json.JSONDecodeError, AttributeError) as e:
                 self.send_error(500, f'Error processing data: {e}')
         
-        elif self.path == '/get-all-results':
+        elif self.path.startswith('/get-results-by-page'):
             try:
-                all_draws = []
-                end_date = datetime.now()
-                start_date = datetime(1993, 1, 1)
+                page = int(self.path.split('?page=')[-1])
                 
-                current_start = start_date
-                
-                while current_start < end_date:
-                    current_end = current_start + timedelta(days=59)
-                    if current_end > end_date:
-                        current_end = end_date
-                        
+                # Define the date range for the entire year
+                year_end_date = datetime.now() - timedelta(days=365 * (page - 1))
+                year_start_date = year_end_date - timedelta(days=364)
+
+                all_draws_for_year = []
+                current_start_date = year_start_date
+
+                while current_start_date <= year_end_date:
+                    current_end_date = current_start_date + timedelta(days=89)
+                    if current_end_date > year_end_date:
+                        current_end_date = year_end_date
+
                     data = {
                         "operationName": "marksixResult",
                         "variables": {
-                            "startDate": current_start.strftime('%Y%m%d'),
-                            "endDate": current_end.strftime('%Y%m%d'),
+                            "startDate": current_start_date.strftime('%Y%m%d'),
+                            "endDate": current_end_date.strftime('%Y%m%d'),
                             "drawType": "All"
                         },
                         "query": query
                     }
-                    
+
+                    time.sleep(0.1)  # Add a small delay to avoid overwhelming the API
                     response = requests.post(url, headers=headers, json=data)
                     response.raise_for_status()
                     json_data = response.json()
-                    
-                    if json_data.get("data") and json_data["data"].get("lotteryDraws"):
-                        all_draws.extend(json_data["data"]["lotteryDraws"])
-                        
-                    current_start += timedelta(days=60)
 
-                all_draws.sort(key=lambda x: x['drawDate'], reverse=True)
+                    if json_data.get("data") and json_data.get("data").get("lotteryDraws"):
+                        all_draws_for_year.extend(json_data["data"]["lotteryDraws"])
 
-                combined_data = {"data": {"lotteryDraws": all_draws}}
+                    current_start_date += timedelta(days=90)
 
+                final_json_data = {"data": {"lotteryDraws": all_draws_for_year}}
+                
                 self.send_response(200)
                 self.send_header('Content-type', 'application/json')
                 self.send_header('Access-Control-Allow-Origin', '*')
                 self.end_headers()
-                self.wfile.write(json.dumps(combined_data).encode('utf-8'))
-            except (requests.exceptions.RequestException, json.JSONDecodeError, AttributeError) as e:
+                self.wfile.write(json.dumps(final_json_data).encode('utf-8'))
+            except (requests.exceptions.RequestException, json.JSONDecodeError, AttributeError, ValueError) as e:
                 self.send_error(500, f'Error processing data: {e}')
         else:
             super().do_GET()
 
-PORT = 8001
+PORT = 8002
 
-with socketserver.TCPServer(('', PORT), CORSRequestHandler) as httpd:
+class ThreadingTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
+    allow_reuse_address = True
+
+with ThreadingTCPServer(('', PORT), CORSRequestHandler) as httpd:
     print(f'Serving at port {PORT}')
     httpd.serve_forever()

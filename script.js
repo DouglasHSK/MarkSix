@@ -39,41 +39,67 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function exportToCsv() {
-        try {
-            const response = await fetch('/get-all-results');
-            const data = await response.json();
-            allDraws = data.data.lotteryDraws;
+        const progressContainer = document.getElementById('progress-container');
+        const progressBar = document.getElementById('progress-bar');
+        progressContainer.style.display = 'block';
+        progressBar.style.width = '0%';
+        progressBar.textContent = '0%';
 
-            if (allDraws.length === 0) {
-                alert('No data available to export.');
-                return;
+        let allDraws = [];
+        const totalYears = new Date().getFullYear() - 1993 + 1;
+
+        for (let i = 0; i < totalYears; i++) {
+            try {
+                const response = await fetch(`/get-results-by-page?page=${i + 1}`);
+                const data = await response.json();
+                if (data.data && data.data.lotteryDraws) {
+                    allDraws = allDraws.concat(data.data.lotteryDraws);
+                }
+
+                const progress = Math.round(((i + 1) / totalYears) * 100);
+                progressBar.style.width = `${progress}%`;
+                progressBar.textContent = `${progress}%`;
+
+            } catch (error) {
+                console.error(`Error fetching data for year ${1993 + i}:`, error);
             }
-
-            const headers = ['ID', 'Draw Date', 'No. 1', 'No. 2', 'No. 3', 'No. 4', 'No. 5', 'No. 6', 'Extra Number'];
-            const rows = allDraws.map(draw => {
-                const id = draw.id;
-                const drawDate = draw.drawDate;
-                const winningNumbers = draw.drawResult.drawnNo;
-                const extraNumber = draw.drawResult.xDrawnNo;
-                return [id, drawDate, ...winningNumbers, extraNumber];
-            });
-
-            let csvContent = "data:text/csv;charset=utf-8," 
-                + headers.join(",") + "\n" 
-                + rows.map(e => e.join(",")).join("\n");
-
-            var encodedUri = encodeURI(csvContent);
-            var link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "mark_six_results.csv");
-            document.body.appendChild(link); // Required for FF
-
-            link.click();
-            document.body.removeChild(link);
-        } catch (error) {
-            console.error('Error exporting to CSV:', error);
-            alert('Failed to export data. Please try again later.');
         }
+
+        if (allDraws.length === 0) {
+            alert('No data available to export.');
+            progressContainer.style.display = 'none';
+            return;
+        }
+
+        sortdata=allDraws.sort((a, b) => b.drawDate > a.drawDate? 1 : -1);
+
+        const headers = ['ID', 'Draw Date', 'No. 1', 'No. 2', 'No. 3', 'No. 4', 'No. 5', 'No. 6', 'Extra Number'];
+        const rows = sortdata.map(draw => {
+            const id = draw.id;
+            const drawDate = draw.drawDate;
+            const winningNumbers = draw.drawResult.drawnNo;
+            const extraNumber = draw.drawResult.xDrawnNo;
+            return [id, drawDate, ...winningNumbers, extraNumber];
+        });
+
+        const csvContent = headers.join(",") + "\n" + rows.map(e => e.join(",")).join("\n");
+        const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", "mark_six_results.csv");
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+
+        link.click();
+
+        setTimeout(() => {
+            progressContainer.style.display = 'none';
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }, 2000);
+
     }
 
     exportCsvButton.addEventListener('click', exportToCsv);
