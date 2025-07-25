@@ -4,6 +4,7 @@ import requests
 import json
 from datetime import datetime, timedelta
 import time
+import sqlite3
 
 class CORSRequestHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
@@ -94,6 +95,50 @@ class CORSRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_error(500, f'Error processing data: {e}')
         else:
             super().do_GET()
+
+    def do_POST(self):
+        if self.path == '/save-to-db':
+            try:
+                content_length = int(self.headers['Content-Length'])
+                post_data = self.rfile.read(content_length)
+                data = json.loads(post_data.decode('utf-8'))
+
+                conn = sqlite3.connect('marksix.db')
+                c = conn.cursor()
+
+                c.execute('''
+                    CREATE TABLE IF NOT EXISTS results (
+                        id TEXT PRIMARY KEY,
+                        draw_date TEXT,
+                        no1 INTEGER, no2 INTEGER, no3 INTEGER, no4 INTEGER, no5 INTEGER, no6 INTEGER,
+                        extra_no INTEGER
+                    )
+                ''')
+
+                for draw in data:
+                    c.execute('''
+                        INSERT OR REPLACE INTO results (id, draw_date, no1, no2, no3, no4, no5, no6, extra_no)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ''', (
+                        draw['id'],
+                        draw['drawDate'],
+                        *draw['drawResult']['drawnNo'],
+                        draw['drawResult']['xDrawnNo']
+                    ))
+
+                conn.commit()
+                conn.close()
+
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps({'message': 'Data saved successfully'}).encode('utf-8'))
+
+            except (json.JSONDecodeError, sqlite3.Error) as e:
+                self.send_error(500, f'Error processing data: {e}')
+        else:
+            self.send_error(404, 'Not Found')
 
 PORT = 8002
 

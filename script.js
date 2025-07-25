@@ -3,6 +3,7 @@ let allDraws = [];
 document.addEventListener('DOMContentLoaded', () => {
     const resultsContainer = document.getElementById('results-container');
     const exportCsvButton = document.getElementById('export-csv');
+    const saveToDbButton = document.getElementById('save-to-db');
 
     async function fetchMarkSixData() {
         resultsContainer.innerHTML = '<div class="loading">Loading...</div>';
@@ -107,5 +108,66 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     exportCsvButton.addEventListener('click', exportToCsv);
+    saveToDbButton.addEventListener('click', saveToDb);
     fetchMarkSixData();
+
+    async function saveToDb() {
+        const saveButton = document.getElementById('save-to-db');
+        saveButton.disabled = true;
+
+        const progressContainer = document.getElementById('progress-container');
+        const progressBar = document.getElementById('progress-bar');
+        progressContainer.style.display = 'block';
+        progressBar.style.width = '0%';
+        progressBar.textContent = '0%';
+
+        let allDraws = [];
+        const totalYears = new Date().getFullYear() - 1993 + 1;
+
+        for (let i = 0; i < totalYears; i++) {
+            try {
+                const response = await fetch(`/get-results-by-page?page=${i + 1}`);
+                const data = await response.json();
+                if (data.data && data.data.lotteryDraws) {
+                    allDraws = allDraws.concat(data.data.lotteryDraws);
+                }
+
+                const progress = Math.round(((i + 1) / totalYears) * 100);
+                progressBar.style.width = `${progress}%`;
+                progressBar.textContent = `${progress}%`;
+
+            } catch (error) {
+                console.error(`Error fetching data for year ${1993 + i}:`, error);
+            }
+        }
+
+        if (allDraws.length === 0) {
+            alert('No data available to save.');
+            progressContainer.style.display = 'none';
+            saveButton.disabled = false;
+            return;
+        }
+
+        try {
+            const response = await fetch('/save-to-db', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(allDraws),
+            });
+
+            if (response.ok) {
+                alert('Data saved successfully!');
+            } else {
+                alert('Failed to save data.');
+            }
+        } catch (error) {
+            console.error('Error saving data:', error);
+            alert('An error occurred while saving the data.');
+        } finally {
+            progressContainer.style.display = 'none';
+            saveButton.disabled = false;
+        }
+    }
 });
