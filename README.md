@@ -2,6 +2,10 @@
 
 This project is a web application that fetches historical Mark Six lottery data, stores it in a local SQLite database, and uses a machine learning model to predict future lottery numbers.
 
+This project leverages artificial intelligence to generate code, including the machine learning model, prediction logic, and web user interface. The AI also helped establish the folder structure and create installation scripts for Python, TensorFlow, and CUDA on Windows Subsystem for Linux (WSL). Approximately 99% of the implementation was completed through AI assistance, with minimal human intervention (around 1%).
+
+This README was generated with the assistance of AI to ensure comprehensive documentation of the project's features, setup instructions, and usage guidelines. The AI helped structure the content in a clear and organized manner while maintaining technical accuracy.
+
 ## Project Structure
 
 ```
@@ -79,15 +83,15 @@ This project is a web application that fetches historical Mark Six lottery data,
     conda activate marksix
 
     python3 -c "import tensorflow as tf; print(tf.config.list_physical_devices('GPU'))"
-    //python3 -c "import tensorflow as tf; print(tf.config.list_physical_devices('GPU'))"
+    //[PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')]
     ```
 ## Setup and Installation
 
 1.  **Clone the repository:**
 
     ```bash
-    git clone <repository-url>
-    cd <repository-directory>
+    git clone https://github.com/DouglasHSK/MarkSix.git
+    cd MarkSix
     ```
 
 2.  **Install Python dependencies:**
