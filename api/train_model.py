@@ -25,6 +25,14 @@ def create_sequences(data, seq_length):
 
 # Main function to train the model
 def train_model(epochs, device):
+    # Check for available GPUs
+    gpus = tf.config.experimental.list_physical_devices('GPU')
+    if gpus:
+        print(f"GPUs found: {len(gpus)}")
+        for gpu in gpus:
+            tf.config.experimental.set_memory_growth(gpu, True)
+    else:
+        print("No GPUs found. Training on CPU.")
     # Load and preprocess the data
     data = load_data()
     scaler = MinMaxScaler()
@@ -42,7 +50,8 @@ def train_model(epochs, device):
     model.compile(optimizer='adam', loss='mse')
 
     # Train the model
-    device_name = '/GPU:0' if device == 'gpu' else '/CPU:0'
+    device_name = '/GPU:0' if device == 'gpu' and gpus else '/CPU:0'
+    print(f"Training on: {device_name}")
     with tf.device(device_name):
         model.fit(X, y, epochs=epochs, verbose=1)
 
