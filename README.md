@@ -186,7 +186,34 @@ This project includes scripts to simplify common tasks on both Windows and Linux
     -   Click **Save to DB** to store the results in the database.
     -   Click **Predict Next Draw** to see the model's predictions for the next 10 draws.
 
+## Docker Support
+
+This project includes a `Dockerfile` to build a containerized version of the application.
+
+### Build the Docker Image
+
+To build the Docker image, run the following command from the project's root directory:
+
+```bash
+docker build -t marksix-app -f docker/Dockerfile .
+```
+
+### Run the Docker Container
+
+Once the image is built, you can run the application in a Docker container:
+
+```bash
+docker run -d -p 8002:8002 --name marksix-container marksix-app
+```
+
+The application will be accessible at `http://localhost:8002`.
+
 ## Changelog
+
+### 2025-07-28 (Docker Support)
+
+-   **Docker:** Added a `Dockerfile` to containerize the application.
+-   **Docs:** Updated the `README.md` with instructions for building and running the Docker container.
 
 ### 2025-07-27 (WSL GPU Setup)
 

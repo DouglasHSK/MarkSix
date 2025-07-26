@@ -1,0 +1,9 @@
+.dockerignore
+.git
+.gitignore
+.idea
+__pycache__/
+*.pyc
+docker/
+Ubuntu-20.04/
+Ubuntu-24.04/
