@@ -35,6 +35,33 @@ This project is a web application that fetches historical Mark Six lottery data,
     -   Displays the predictions in a list format.
     -   Allows copying the predicted numbers to the clipboard.
 
+
+## For WSL For GPU
+
+1. CUDA Toolkit Installer
+    -   Download the CUDA Toolkit Installer from the NVIDIA website.
+    -   Install the CUDA Toolkit on your WSL system.
+    -   Restart your WSL system.
+    
+2. cuDNN Installer
+    -   Download the cuDNN Installer from the NVIDIA website.
+    -   Install the cuDNN Library on your WSL system.
+    -   Restart your WSL system.
+
+3. TensorFlow Installation
+    ```bash
+    conda create --name tensorflow python=3.12
+    conda activate tensorflow
+
+    pip install tensorflow[and-cuda]==2.16.1
+    for dir in "$CONDA_PREFIX"/lib/python3.12/site-packages/nvidia/*; do [ -d "$dir/lib" ] && LD_LIBRARY_PATH="$dir/lib:$LD_LIBRARY_PATH"; done
+    conda env config vars set LD_LIBRARY_PATH=$LD_LIBRARY_PATH
+
+    conda deactivate
+    conda activate tensorflow
+
+    python3 -c "import tensorflow as tf; print(tf.config.list_physical_devices('GPU'))"
+    ```
 ## Setup and Installation
 
 1.  **Clone the repository:**
@@ -76,7 +103,14 @@ This project includes scripts to simplify common tasks on both Windows and Linux
     ```
 -   **Train the model:**
     ```bash
-    train-model.bat
+    train-model.bat [epochs] [device]
+    ```
+    -   `epochs` (optional): The number of training epochs (default: 2000).
+    -   `device` (optional): The training device, either `gpu` or `cpu` (default: `gpu`).
+
+    **Example:**
+    ```bash
+    train-model.bat 5000 cpu
     ```
 -   **Run prediction:**
     ```bash
@@ -93,7 +127,14 @@ This project includes scripts to simplify common tasks on both Windows and Linux
 -   **Train the model:**
     ```bash
     chmod +x train-model.sh
-    ./train-model.sh
+    ./train-model.sh [epochs] [device]
+    ```
+    -   `epochs` (optional): The number of training epochs (default: 2000).
+    -   `device` (optional): The training device, either `gpu` or `cpu` (default: `gpu`).
+
+    **Example:**
+    ```bash
+    ./train-model.sh 5000 cpu
     ```
 -   **Run prediction:**
     ```bash

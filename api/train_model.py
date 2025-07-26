@@ -4,6 +4,7 @@ import tensorflow as tf
 from sklearn.preprocessing import MinMaxScaler
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense, Reshape
+import argparse
 
 # Function to load data from the database
 def load_data():
@@ -23,7 +24,7 @@ def create_sequences(data, seq_length):
     return np.array(X), np.array(y)
 
 # Main function to train the model
-def train_model():
+def train_model(epochs, device):
     # Load and preprocess the data
     data = load_data()
     scaler = MinMaxScaler()
@@ -41,7 +42,9 @@ def train_model():
     model.compile(optimizer='adam', loss='mse')
 
     # Train the model
-    model.fit(X, y, epochs=200, verbose=1)
+    device_name = '/GPU:0' if device == 'gpu' else '/CPU:0'
+    with tf.device(device_name):
+        model.fit(X, y, epochs=epochs, verbose=1)
 
     # Save the model and the scaler
     model.save('data/marksix_model.keras')
@@ -50,4 +53,9 @@ def train_model():
     print("Model training complete and saved as marksix_model.keras")
 
 if __name__ == '__main__':
-    train_model()
+    parser = argparse.ArgumentParser(description='Train the Mark Six prediction model.')
+    parser.add_argument('--epochs', type=int, default=2000, help='Number of epochs to train the model.')
+    parser.add_argument('--device', type=str, default='gpu', choices=['gpu', 'cpu'], help='Device to use for training (gpu or cpu).')
+    args = parser.parse_args()
+
+    train_model(args.epochs, args.device)
