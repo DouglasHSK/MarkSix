@@ -16,6 +16,7 @@
 
     <div class="toolbar">
         <button id="export-csv"><img src="assets/export-csv-icon.svg" class="button-icon" alt="icon"> Export to CSV</button>
+        <button id="show-history"><img src="assets/save-to-db-icon.svg" class="button-icon" alt="icon"> Show History</button>
         <button id="save-to-db"><img src="assets/save-to-db-icon.svg" class="button-icon" alt="icon"> Save to DB</button>
         <button id="predict"><img src="assets/predict-icon.svg" class="button-icon" alt="icon"> Predict Next Draw</button>
     </div>
@@ -23,8 +24,12 @@
     <div id="results-container">
         <!-- Results will be displayed here -->
     </div>
+  
     <div id="prediction-container" style="display: none;">
         <!-- Prediction will be displayed here -->
+    </div>
+      <div id="history-container">
+        <!-- History will be displayed here -->
     </div>
     <div id="progress-dialog" class="dialog" style="display: none;">
         <div class="dialog-content">

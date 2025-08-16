@@ -31,6 +31,38 @@ class CORSRequestHandler(http.server.SimpleHTTPRequestHandler):
         }
         query = "fragment lotteryDrawsFragment on LotteryDraw {\n  id\n  year\n  no\n  openDate\n  closeDate\n  drawDate\n  status\n  snowballCode\n  snowballName_en\n  snowballName_ch\n  lotteryPool {\n    sell\n    status\n    totalInvestment\n    jackpot\n    unitBet\n    estimatedPrize\n    derivedFirstPrizeDiv\n    lotteryPrizes {\n      type\n      winningUnit\n      dividend\n    }\n  }\n  drawResult {\n    drawnNo\n    xDrawnNo\n  }\n}\n\nquery marksixResult($lastNDraw: Int, $startDate: String, $endDate: String, $drawType: LotteryDrawType) {\n  lotteryDraws(\n    lastNDraw: $lastNDraw\n    startDate: $startDate\n    endDate: $endDate\n    drawType: $drawType\n  ) {\n    ...lotteryDrawsFragment\n  }\n}"
 
+        if self.path == '/get-history':
+            try:
+                conn = sqlite3.connect('data/marksix.db')
+                cursor = conn.cursor()
+                cursor.execute('SELECT id, draw_date, no1, no2, no3, no4, no5, no6, extra_no FROM results ORDER BY draw_date DESC')
+                draws = cursor.fetchall()
+                
+                history_data = {"data": {"lotteryDraws": []}}
+                for draw in draws:
+                    history_data["data"]["lotteryDraws"].append({
+                        "id": draw[0],
+                        "drawDate": draw[1],
+                        "drawResult": {
+                            "drawnNo": [draw[2], draw[3], draw[4], draw[5], draw[6], draw[7]],
+                            "xDrawnNo": draw[8]
+                        }
+                    })
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps(history_data).encode('utf-8'))
+                return
+                
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+                return
+                
         if self.path == '/get-latest-result':
             try:
                 data = {
@@ -115,7 +147,7 @@ class CORSRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_header('Access-Control-Allow-Origin', '*')
                 self.end_headers()
                 try:
-                    self.wfile.write(json.dumps({'predictions': predictions}).encode('utf-8'))
+                    self.wfile.write(json.dumps(predictions).encode('utf-8'))
                 except ConnectionAbortedError:
                     pass # Client disconnected
             except (subprocess.CalledProcessError, json.JSONDecodeError, IndexError) as e:

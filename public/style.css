@@ -48,6 +48,46 @@ button:disabled {
     background-color: #4CAF50;
 }
 
+#history-container {
+  margin: 20px 0;
+  padding: 0px;
+  border-radius: 8px;
+  background: #070707;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+#history-container table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+#history-container th {
+  background: #609dda;
+  padding: 10px;
+  text-align: left;
+}
+
+#history-container td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #dee2e6;
+}
+
+#history-container tr:hover {
+  background-color: #36395c;
+}
+
+.history-container .draw-info {
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #333;
+}
+
+.history-container .draw-info:last-child {
+    border-bottom: none;
+}
+
 #save-to-db {
     background-color: #f44336;
 }
@@ -227,4 +267,43 @@ h1 {
     color: #e62e00;
     text-align: center;
     padding: 20px;
+}
+
+.loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255,255,255,.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 1s ease-in-out infinite;
+    margin-right: 10px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0px;
+}
+
+.history-table th, .history-table td {
+  padding: 0px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.history-table th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.history-table tr:hover {
+  background-color: #f5f5f5;
 }

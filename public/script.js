@@ -103,12 +103,68 @@ document.addEventListener('DOMContentLoaded', () => {
 
     exportCsvButton.addEventListener('click', exportToCsv);
     saveToDbButton.addEventListener('click', saveToDb);
-
+    
+    const showHistoryButton = document.getElementById('show-history');
+    showHistoryButton.addEventListener('click', showHistory);
+    
+    async function showHistory() {
+      try {
+        const response = await fetch('/get-history');
+        const historyData = await response.json();
+        displayHistory(historyData);
+      } catch (error) {
+        console.error('Error fetching history:', error);
+        alert('Failed to load history. Please try again later.');
+      }
+    }
+    
+    function displayHistory(data) {
+        const historyContainer = document.getElementById('history-container');
+        historyContainer.innerHTML = '';
+        
+        const table = document.createElement('table');
+        table.className = 'history-table';
+        
+        // Create table header
+        const headerRow = table.insertRow();
+        ['Draw ID', 'Date', 'Numbers', 'Extra'].forEach(text => {
+            const th = document.createElement('th');
+            th.textContent = text;
+            headerRow.appendChild(th);
+        });
+        
+        // Add each draw to the table
+        data.data.lotteryDraws.forEach(draw => {
+            const row = table.insertRow();
+            
+            // Draw ID
+            const idCell = row.insertCell();
+            idCell.textContent = draw.id;
+            
+            // Date (formatted without timezone)
+            const dateCell = row.insertCell();
+            dateCell.textContent = draw.drawDate.split('+')[0];
+            
+            // Numbers
+            const numbersCell = row.insertCell();
+            numbersCell.textContent = draw.drawResult.drawnNo.join(', ');
+            
+            // Extra number
+            const extraCell = row.insertCell();
+            extraCell.textContent = draw.drawResult.xDrawnNo;
+        });
+        
+        historyContainer.appendChild(table);
+    }
+    showHistory();
     predictButton.addEventListener('click', async () => {
+        const predictionContainer = document.getElementById('prediction-container');
+        predictionContainer.innerHTML = '<div class="loading">Predicting...</div>';
+        predictionContainer.style.display = 'block';
+        
         try {
             const response = await fetch('/predict');
             const data = await response.json();
-            const predictionContainer = document.getElementById('prediction-container');
             let html = '<h3>Predicted Next 10 Draws:</h3>';
             html += '<ul class="prediction-list">';
             data.predictions.forEach((prediction, index) => {
