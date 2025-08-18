@@ -166,11 +166,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch('/predict');
             const data = await response.json();
             let html = '<h3>Predicted Next 10 Draws:</h3>';
-            html += '<ul class="prediction-list">';
+            html += '<div class="prediction-list">';
             data.predictions.forEach((prediction, index) => {
-                html += `<li><strong>Set ${index + 1}:</strong> ${prediction.join(', ')}</li>`;
+                html += `<div class="prediction-item"><strong>Set ${index + 1}:</strong> <div class="number"> ${prediction.join('</div><div class="number">')}</div></div>`;
+
             });
-            html += '</ul>';
+            html += '</div>';
             html += '<button id="copy-predictions">Copy to Clipboard</button>';
             predictionContainer.innerHTML = html;
             predictionContainer.style.display = 'block';

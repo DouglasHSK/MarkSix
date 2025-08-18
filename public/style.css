@@ -96,6 +96,15 @@ button:disabled {
     background-color: #2196F3;
 }
 
+strong {
+  display: inline-block;
+  color: red;
+  padding: 5px 10px;
+  background-color: rgba(255, 0, 0, 0.1);
+  border-left: 3px solid red;
+  margin: 5px 0;
+}
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     max-width: 900px;
@@ -127,17 +136,19 @@ h1 {
 }
 
 #prediction-container .prediction-list {
-    list-style-type: none;
     padding: 0;
     margin-top: 20px;
 }
 
-#prediction-container .prediction-list li {
+#prediction-container .prediction-item {
     background-color: #2a2a2a;
     border: 1px solid #333;
     padding: 15px;
+     gap: 10px;
     border-radius: 8px;
     margin-bottom: 10px;
+      display: flex;
+       flex-wrap: wrap;
 }
 
 #copy-predictions {
